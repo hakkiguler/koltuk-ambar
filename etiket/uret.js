@@ -55,6 +55,18 @@ function svg(matris, bosluk, mm){
        + `<path d="${d}" fill="#000"/></svg>`;
 }
 
+/* ---------- rakamlar ----------
+   Duz yazi kullanirsak kucuk etiketlerde kutudan tasiyor
+   (yazi tipinin genisligi mm ile orantili degil).
+   SVG icinde textLength ile yaziyi kutuya ZORLA sigdiriyoruz:
+   hangi boyut olursa olsun tasma olmaz.                     */
+function rakamSvg(metin, genMm, yukMm){
+  return `<svg width="${genMm}mm" height="${yukMm}mm" viewBox="0 0 100 18" `
+       + `xmlns="http://www.w3.org/2000/svg"><text x="50" y="14" text-anchor="middle" `
+       + `textLength="96" lengthAdjust="spacingAndGlyphs" font-family="Consolas,monospace" `
+       + `font-size="15" font-weight="700" fill="#000">${metin}</text></svg>`;
+}
+
 /* ---------- geri okuma denetimi ----------
    Urettigimiz matrisi buyutup tekrar okuyoruz.
    Okunamayan bir sey uretmis olmayalim.                     */
@@ -90,7 +102,7 @@ function etiket(sira, boy, tur){
     html:
       `<div class="etiket" style="width:${boy}mm;height:${boy}mm;padding:${kenar}mm">
          ${svg(m, bosluk, kodMm)}
-         <div class="rakam" style="height:${yaziYuk}mm;font-size:${yaziYuk}mm">${yazi(sira)}</div>
+         ${rakamSvg(yazi(sira), boy - kenar * 2, yaziYuk)}
        </div>`
   };
 }
