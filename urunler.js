@@ -13,6 +13,20 @@
 const URUNLER = [
 
   {
+    barkod: "8684207695867",
+    ad:     "Su Şişesi",
+    yer:    "1. RAF – 1. GÖZ",
+    not:    "Deneme kaydı"
+  },
+
+  {
+    barkod: "8697681460098",
+    ad:     "Protein Tozu",
+    yer:    "1. RAF – 1. GÖZ",
+    not:    "Deneme kaydı"
+  },
+
+  {
     barkod: "8690000000017",
     ad:     "ÖRNEK — Koltuk Süngeri (Sol)",
     yer:    "3. RAF – 2. GÖZ",
