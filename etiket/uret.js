@@ -13,23 +13,19 @@ const fs = require("fs");
 const path = require("path");
 const Z = require("../parcalar/zxing.min.js");
 
-/* ---------- kontrol hanesi ----------
-   5 rakamin uzerinden hesaplanir (3-1-3-1-3 agirlikli).
-   Tek hane yanlis okunursa tutmaz -> uygulama yakalar.      */
-function kontrolHanesi(besRakam){
-  const d = String(besRakam).padStart(5,"0").split("").map(Number);
-  const toplam = d.reduce((t,x,i) => t + x * (i % 2 === 0 ? 3 : 1), 0);
-  return (10 - (toplam % 10)) % 10;
-}
+/* ---------- kod bicimi ----------
+   KA + 6 rakam. Kontrol hanesi YOK (14/08 karari):
+   DataMatrix'in kendi hata duzeltmesi zaten var, ikinci bir
+   koruma icin kapasiteden vazgecmeye degmiyor.
+   Kapasite: 999.999 kod.
 
-/* KA + 5 rakam + kontrol  ->  makinenin okudugu    */
+   Makinenin okudugu : KA000001   (tiresiz -> matris kucuk kalir)
+   Etikette yazan    : KA-000001  (tire sadece goze, koda girmiyor)  */
 function kod(sira){
-  const bes = String(sira).padStart(5,"0");
-  return "KA" + bes + kontrolHanesi(bes);
+  return "KA" + String(sira).padStart(6,"0");
 }
-/* insanin okudugu (etikette yazan) */
 function yazi(sira){
-  return "KA-" + String(sira).padStart(5,"0");
+  return "KA-" + String(sira).padStart(6,"0");
 }
 
 /* ---------- matris uretimi ---------- */
