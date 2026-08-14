@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Koltuk Ambar</title>
+<meta name="theme-color" content="#12141a">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./ikon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Koltuk Ambar">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:#12141a;
+    color:#f2f4f8;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    display:flex;flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow:hidden;
+    user-select:none;
+  }
+
+  /* ---- üst şerit ---- */
+  header{
+    flex:0 0 auto;display:flex;align-items:center;gap:10px;
+    padding:14px 16px;border-bottom:1px solid #262a35;
+  }
+  header .logo{font-size:22px}
+  header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.3px;flex:1}
+  header .gecmis-tus{
+    background:none;border:1px solid #3a4050;color:#aab2c4;
+    font-size:13px;padding:7px 11px;border-radius:9px;font-family:inherit;
+  }
+
+  /* ---- ekranlar ---- */
+  main{flex:1 1 auto;position:relative;overflow:hidden}
+  .ekran{
+    position:absolute;inset:0;display:none;
+    flex-direction:column;padding:20px;overflow-y:auto;
+  }
+  .ekran.acik{display:flex}
+
+  /* ---- tuşlar ---- */
+  .tus{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    width:100%;border:0;border-radius:16px;
+    font-family:inherit;font-weight:800;font-size:22px;
+    padding:22px 18px;color:#12141a;background:#ffd23f;
+    box-shadow:0 4px 0 #c9a323;
+  }
+  .tus:active{transform:translateY(3px);box-shadow:0 1px 0 #c9a323}
+  .tus.ikincil{
+    background:transparent;color:#c7cede;border:2px solid #3a4050;
+    box-shadow:none;font-size:17px;font-weight:600;padding:17px}
+  .tus.ikincil:active{transform:none;background:#1b1f28}
+  .tus.yesil{background:#4ade80;box-shadow:0 4px 0 #2fa85c}
+  .tus.yesil:active{box-shadow:0 1px 0 #2fa85c}
+
+  /* ---- ANA EKRAN ---- */
+  #ekran-ana{justify-content:center;align-items:center;text-align:center;gap:16px}
+  #ekran-ana .kocaman-ikon{font-size:74px;line-height:1}
+  #ekran-ana .aciklama{color:#8b93a7;font-size:15px;line-height:1.5;max-width:320px;margin:0 0 8px}
+  #ekran-ana .tuslar{width:100%;max-width:400px;display:flex;flex-direction:column;gap:12px}
+
+  /* ---- KAMERA EKRANI ---- */
+  #ekran-kamera{padding:0}
+  #video{
+    position:absolute;inset:0;width:100%;height:100%;
+    object-fit:cover;background:#000;
+  }
+  .cerceve{
+    position:absolute;left:8%;right:8%;top:50%;transform:translateY(-50%);
+    height:34%;border:3px solid rgba(255,210,63,.95);border-radius:14px;
+    box-shadow:0 0 0 3000px rgba(0,0,0,.45);
+    pointer-events:none;
+  }
+  .cerceve::after{
+    content:"";position:absolute;left:6px;right:6px;top:50%;height:3px;
+    background:#ff4d4d;box-shadow:0 0 12px #ff4d4d;
+  }
+  .kamera-yazi{
+    position:absolute;left:0;right:0;top:16px;text-align:center;
+    font-size:16px;font-weight:700;text-shadow:0 2px 6px #000;padding:0 20px;
+  }
+  .kamera-alt{
+    position:absolute;left:0;right:0;bottom:0;
+    padding:16px 16px calc(16px + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .kamera-alt .satir{display:flex;gap:10px}
+  .kamera-alt .satir .tus{font-size:16px;padding:16px}
+  #ipucu{
+    text-align:center;font-size:14px;color:#ffd23f;
+    text-shadow:0 2px 6px #000;min-height:20px;
+  }
+
+  /* ---- SONUÇ EKRANI ---- */
+  #ekran-sonuc{justify-content:space-between}
+  .sonuc-govde{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:14px}
+  .etiket{font-size:13px;letter-spacing:2px;font-weight:700;color:#8b93a7}
+  #urun-ad{font-size:26px;font-weight:700;line-height:1.25;margin:0}
+  #yer{
+    font-size:15vw;font-weight:900;line-height:1.05;letter-spacing:-1px;
+    color:#4ade80;margin:6px 0;word-break:break-word;
+  }
+  #yer.uzun{font-size:10vw}
+  #not{color:#c7cede;font-size:16px;line-height:1.4;margin:0}
+  .kod-kutu{
+    font-family:ui-monospace,Consolas,monospace;font-size:24px;font-weight:700;
+    background:#1b1f28;border:1px dashed #3a4050;border-radius:12px;
+    padding:14px;letter-spacing:1px;word-break:break-all;user-select:text;
+  }
+  .bulunamadi #yer{color:#ff5c5c;font-size:12vw}
+  .bulunamadi .etiket{color:#ff8a8a}
+  .sonuc-tuslar{display:flex;flex-direction:column;gap:10px;padding-top:16px}
+
+  /* ---- ELLE GİRİŞ ---- */
+  #ekran-elle{gap:14px}
+  #ekran-elle h2{font-size:20px;margin:8px 0 0}
+  #ekran-elle p{color:#8b93a7;font-size:14px;margin:0;line-height:1.5}
+  #elle-kod{
+    width:100%;font-family:ui-monospace,Consolas,monospace;
+    font-size:28px;font-weight:700;text-align:center;letter-spacing:2px;
+    padding:20px 14px;border-radius:14px;border:2px solid #3a4050;
+    background:#1b1f28;color:#f2f4f8;
+  }
+  #elle-kod:focus{outline:none;border-color:#ffd23f}
+
+  /* ---- GEÇMİŞ ---- */
+  #ekran-gecmis h2{font-size:20px;margin:4px 0 10px}
+  #gecmis-liste{list-style:none;padding:0;margin:0 0 16px;display:flex;flex-direction:column;gap:8px}
+  #gecmis-liste li{
+    background:#1b1f28;border:1px solid #262a35;border-radius:12px;padding:12px 14px;
+    font-size:14px;user-select:text;
+  }
+  #gecmis-liste li .k{font-family:ui-monospace,Consolas,monospace;font-size:17px;font-weight:700}
+  #gecmis-liste li .d{color:#8b93a7;font-size:13px;margin-top:3px}
+  #gecmis-liste li.yok-kayit{border-color:#5a3030;background:#241a1a}
+  #gecmis-bos{color:#8b93a7;font-size:15px;line-height:1.5}
+  .gecmis-tuslar{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:14px}
+
+  .hata{
+    background:#3a1f22;border:1px solid #7a3b40;color:#ffc9c9;
+    border-radius:12px;padding:14px;font-size:15px;line-height:1.5;
+  }
+  .surum{
+    position:absolute;bottom:4px;right:8px;font-size:10px;color:#3a4050;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">📦</span>
+  <h1>Koltuk Ambar</h1>
+  <button class="gecmis-tus" id="tus-gecmis">Geçmiş</button>
+</header>
+
+<main>
+
+  <!-- ================= ANA EKRAN ================= -->
+  <section class="ekran acik" id="ekran-ana">
+    <div class="kocaman-ikon">📷</div>
+    <p class="aciklama">Ürünün barkodunu okut, ambardaki yerini söyleyeyim.</p>
+    <div class="tuslar">
+      <button class="tus" id="tus-kamera">KAMERA AÇ</button>
+      <button class="tus ikincil" id="tus-elle">Numarayı elle yaz</button>
+    </div>
+  </section>
+
+  <!-- ================= KAMERA ================= -->
+  <section class="ekran" id="ekran-kamera">
+    <video id="video" playsinline muted autoplay></video>
+    <div class="cerceve"></div>
+    <div class="kamera-yazi">Barkodu çerçevenin içine getir</div>
+    <div class="kamera-alt">
+      <div id="ipucu"></div>
+      <div class="satir">
+        <button class="tus ikincil" id="tus-fener" style="display:none">🔦 Işık</button>
+        <button class="tus ikincil" id="tus-kapat">Vazgeç</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SONUÇ ================= -->
+  <section class="ekran" id="ekran-sonuc">
+    <div class="sonuc-govde">
+      <div class="etiket" id="sonuc-etiket">ÜRÜN</div>
+      <h2 id="urun-ad"></h2>
+      <div id="yer"></div>
+      <p id="not"></p>
+      <div class="kod-kutu" id="sonuc-kod"></div>
+    </div>
+    <div class="sonuc-tuslar">
+      <button class="tus yesil" id="tus-yeni">YENİ OKUT</button>
+      <button class="tus ikincil" id="tus-kopyala">Numarayı kopyala</button>
+    </div>
+  </section>
+
+  <!-- ================= ELLE GİRİŞ ================= -->
+  <section class="ekran" id="ekran-elle">
+    <h2>Barkod numarası</h2>
+    <p>Barkodun altındaki rakamları yaz.</p>
+    <input id="elle-kod" type="text" inputmode="numeric" autocomplete="off" placeholder="8690000000017">
+    <button class="tus" id="tus-ara">ARA</button>
+    <button class="tus ikincil" id="tus-elle-vazgec">Vazgeç</button>
+  </section>
+
+  <!-- ================= GEÇMİŞ ================= -->
+  <section class="ekran" id="ekran-gecmis">
+    <h2>Okuduklarım</h2>
+    <p id="gecmis-bos"></p>
+    <ul id="gecmis-liste"></ul>
+    <div class="gecmis-tuslar">
+      <button class="tus ikincil" id="tus-gecmis-kopya">Hepsini kopyala</button>
+      <button class="tus ikincil" id="tus-gecmis-sil">Listeyi temizle</button>
+      <button class="tus" id="tus-gecmis-kapat">Geri dön</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="surum">v1</div>
+
+<script src="./urunler.js"></script>
+<script src="./parcalar/zxing.min.js"></script>
+<script>
+/* =========================================================
+   Koltuk Ambar — barkod okutup ambardaki yeri gösterir
+   ========================================================= */
+
+const el = id => document.getElementById(id);
+const EKRANLAR = ["ana","kamera","sonuc","elle","gecmis"];
+
+let akis = null;        // kamera görüntü akışı (MediaStream)
+let zxingOkuyucu = null;
+let taramaCalisiyor = false;
+let animKare = null;
+let sonKod = "";
+let ipucuSayaci = null;
+
+/* ---------- ekran değiştirme ---------- */
+function ekranGoster(ad){
+  EKRANLAR.forEach(e => el("ekran-"+e).classList.toggle("acik", e === ad));
+}
+
+/* ---------- barkod numarasını sadeleştir ----------
+   Bazı okuyucular başa 0 ekler, bazıları boşluk bırakır.
+   Karşılaştırmayı bozmasın diye temizliyoruz.              */
+function sadelestir(kod){
+  return String(kod).replace(/[^0-9A-Za-z]/g, "").toUpperCase();
+}
+
+/* ---------- listede ara ---------- */
+function urunBul(kod){
+  const s = sadelestir(kod);
+  let bulunan = URUNLER.find(u => sadelestir(u.barkod) === s);
+  if (bulunan) return bulunan;
+
+  // 12 haneli / 13 haneli farkını da dene (baştaki sıfır meselesi)
+  bulunan = URUNLER.find(u => {
+    const b = sadelestir(u.barkod);
+    return b.replace(/^0+/,"") === s.replace(/^0+/,"");
+  });
+  return bulunan || null;
+}
+
+/* ---------- bip sesi ---------- */
+let sesKutusu = null;
+function bipHazirla(){
+  try{
+    if (!sesKutusu) sesKutusu = new (window.AudioContext || window.webkitAudioContext)();
+    if (sesKutusu.state === "suspended") sesKutusu.resume();
+  }catch(e){}
+}
+function bip(basarili){
+  try{
+    if (!sesKutusu) return;
+    const o = sesKutusu.createOscillator();
+    const g = sesKutusu.createGain();
+    o.type = "square";
+    o.frequency.value = basarili ? 950 : 320;
+    g.gain.value = 0.09;
+    o.connect(g); g.connect(sesKutusu.destination);
+    const t = sesKutusu.currentTime;
+    o.start(t); o.stop(t + (basarili ? 0.13 : 0.32));
+  }catch(e){}
+}
+function titret(basarili){
+  try{
+    if (navigator.vibrate) navigator.vibrate(basarili ? [90] : [70,60,70]);
+  }catch(e){}
+}
+
+/* ---------- geçmiş (telefonda saklanır) ---------- */
+const GECMIS_ANAHTAR = "koltukambar_gecmis";
+function gecmisAl(){
+  try{ return JSON.parse(localStorage.getItem(GECMIS_ANAHTAR)) || []; }
+  catch(e){ return []; }
+}
+function gecmiseEkle(kayit){
+  const g = gecmisAl();
+  g.unshift(kayit);
+  try{ localStorage.setItem(GECMIS_ANAHTAR, JSON.stringify(g.slice(0,200))); }catch(e){}
+}
+function gecmisiCiz(){
+  const g = gecmisAl();
+  const liste = el("gecmis-liste");
+  liste.innerHTML = "";
+  el("gecmis-bos").textContent = g.length
+    ? "En son okuttuğun barkodlar. Listede olmayanları buradan kopyalayıp gönderebilirsin."
+    : "Henüz barkod okutmadın.";
+  g.forEach(k => {
+    const li = document.createElement("li");
+    if (!k.bulundu) li.className = "yok-kayit";
+    li.innerHTML = '<div class="k">' + k.kod + '</div><div class="d">'
+      + (k.bulundu ? (k.ad + " · " + k.yer) : "listede yok")
+      + " · " + k.zaman + "</div>";
+    liste.appendChild(li);
+  });
+}
+
+/* ---------- sonucu göster ---------- */
+function sonucGoster(kod){
+  sonKod = kod;
+  const u = urunBul(kod);
+  const ekran = el("ekran-sonuc");
+
+  if (u){
+    ekran.classList.remove("bulunamadi");
+    el("sonuc-etiket").textContent = "ÜRÜN";
+    el("urun-ad").textContent = u.ad;
+    el("yer").textContent = u.yer;
+    el("yer").classList.toggle("uzun", u.yer.length > 16);
+    el("not").textContent = u.not || "";
+    el("not").style.display = u.not ? "block" : "none";
+  } else {
+    ekran.classList.add("bulunamadi");
+    el("sonuc-etiket").textContent = "OKUNAN NUMARA";
+    el("urun-ad").textContent = "";
+    el("yer").textContent = "BULUNAMADI";
+    el("yer").classList.remove("uzun");
+    el("not").textContent = "Bu barkod listede yok. Numarayı not al.";
+    el("not").style.display = "block";
+  }
+  el("sonuc-kod").textContent = kod;
+
+  const zaman = new Date().toLocaleString("tr-TR",
+    {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  gecmiseEkle({kod:kod, bulundu:!!u, ad:u?u.ad:"", yer:u?u.yer:"", zaman:zaman});
+
+  bip(!!u);
+  titret(!!u);
+  ekranGoster("sonuc");
+}
+
+/* =========================================================
+   KAMERA
+   ========================================================= */
+async function kameraAc(){
+  bipHazirla();
+  ekranGoster("kamera");
+  el("ipucu").textContent = "";
+  taramaCalisiyor = true;
+
+  // 8 saniye sonra okuyamadıysa yol göster
+  clearTimeout(ipucuSayaci);
+  ipucuSayaci = setTimeout(() => {
+    if (taramaCalisiyor)
+      el("ipucu").textContent = "Okumuyor mu? Biraz uzaklaş, ışığı aç veya elle yaz.";
+  }, 8000);
+
+  const kisitlar = {
+    video:{
+      facingMode:{ideal:"environment"},
+      width:{ideal:1280}, height:{ideal:720}
+    },
+    audio:false
+  };
+
+  // Yol 1: telefonun kendi barkod okuyucusu (Android Chrome'da var)
+  if ("BarcodeDetector" in window){
+    try{
+      const destekli = await window.BarcodeDetector.getSupportedFormats();
+      const istenen = ["ean_13","ean_8","upc_a","upc_e","code_128","code_39","itf","codabar","qr_code"]
+                        .filter(f => destekli.includes(f));
+      if (istenen.length){
+        akis = await navigator.mediaDevices.getUserMedia(kisitlar);
+        el("video").srcObject = akis;
+        await el("video").play();
+        fenerKontrol();
+        const dedektor = new window.BarcodeDetector({formats:istenen});
+        yerliDongu(dedektor);
+        return;
+      }
+    }catch(e){
+      // olmadı, aşağıdaki yola geç
+      kameraKapat(false);
+    }
+  }
+
+  // Yol 2: ZXing (iPhone ve diğerleri)
+  try{
+    zxingOkuyucu = new ZXing.BrowserMultiFormatReader(null, {delayBetweenScanAttempts:120});
+    await zxingOkuyucu.decodeFromConstraints(kisitlar, el("video"), (sonuc) => {
+      if (sonuc && taramaCalisiyor) kodOkundu(sonuc.getText());
+    });
+    akis = el("video").srcObject;
+    fenerKontrol();
+  }catch(e){
+    kameraHatasi(e);
+  }
+}
+
+function yerliDongu(dedektor){
+  const video = el("video");
+  const tara = async () => {
+    if (!taramaCalisiyor) return;
+    try{
+      if (video.readyState === video.HAVE_ENOUGH_DATA){
+        const bulunanlar = await dedektor.detect(video);
+        if (bulunanlar.length && bulunanlar[0].rawValue){
+          kodOkundu(bulunanlar[0].rawValue);
+          return;
+        }
+      }
+    }catch(e){}
+    animKare = requestAnimationFrame(tara);
+  };
+  animKare = requestAnimationFrame(tara);
+}
+
+function kodOkundu(kod){
+  if (!taramaCalisiyor) return;
+  taramaCalisiyor = false;
+  kameraKapat(true);
+  sonucGoster(String(kod).trim());
+}
+
+function kameraKapat(sesiKes){
+  taramaCalisiyor = false;
+  clearTimeout(ipucuSayaci);
+  if (animKare){ cancelAnimationFrame(animKare); animKare = null; }
+  try{ if (zxingOkuyucu){ zxingOkuyucu.reset(); zxingOkuyucu = null; } }catch(e){}
+  try{ if (akis){ akis.getTracks().forEach(t => t.stop()); akis = null; } }catch(e){}
+  el("video").srcObject = null;
+  el("tus-fener").style.display = "none";
+  fenerAcik = false;
+}
+
+/* ---------- el feneri (destekleyen telefonlarda) ---------- */
+let fenerAcik = false;
+function fenerKontrol(){
+  try{
+    const iz = akis && akis.getVideoTracks()[0];
+    if (!iz || !iz.getCapabilities) return;
+    const y = iz.getCapabilities();
+    if (y && y.torch) el("tus-fener").style.display = "flex";
+  }catch(e){}
+}
+async function fenerCevir(){
+  try{
+    const iz = akis && akis.getVideoTracks()[0];
+    if (!iz) return;
+    fenerAcik = !fenerAcik;
+    await iz.applyConstraints({advanced:[{torch:fenerAcik}]});
+  }catch(e){}
+}
+
+function kameraHatasi(e){
+  const ad = (e && e.name) || "";
+  let mesaj;
+  if (ad === "NotAllowedError" || ad === "SecurityError")
+    mesaj = "Kamera izni verilmedi. Tarayıcının adres çubuğundaki kilit işaretinden kamerayı aç, sonra tekrar dene.";
+  else if (ad === "NotFoundError" || ad === "OverconstrainedError")
+    mesaj = "Arka kamera bulunamadı.";
+  else if (!window.isSecureContext)
+    mesaj = "Bu sayfa https ile açılmadığı için tarayıcı kamerayı vermiyor.";
+  else
+    mesaj = "Kamera açılamadı: " + (ad || e);
+
+  const ana = el("ekran-ana");
+  let kutu = ana.querySelector(".hata");
+  if (!kutu){
+    kutu = document.createElement("div");
+    kutu.className = "hata";
+    kutu.style.marginTop = "16px";
+    ana.appendChild(kutu);
+  }
+  kutu.textContent = mesaj + " Bu arada numarayı elle yazabilirsin.";
+  kameraKapat();
+  ekranGoster("ana");
+}
+
+/* =========================================================
+   TUŞLAR
+   ========================================================= */
+el("tus-kamera").onclick = kameraAc;
+el("tus-kapat").onclick  = () => { kameraKapat(); ekranGoster("ana"); };
+el("tus-fener").onclick  = fenerCevir;
+el("tus-yeni").onclick   = kameraAc;
+
+el("tus-elle").onclick = () => {
+  bipHazirla();
+  el("elle-kod").value = "";
+  ekranGoster("elle");
+  setTimeout(() => el("elle-kod").focus(), 120);
+};
+el("tus-elle-vazgec").onclick = () => ekranGoster("ana");
+el("tus-ara").onclick = () => {
+  const k = el("elle-kod").value.trim();
+  if (!k) { el("elle-kod").focus(); return; }
+  el("elle-kod").blur();
+  sonucGoster(k);
+};
+el("elle-kod").addEventListener("keydown", e => {
+  if (e.key === "Enter") el("tus-ara").click();
+});
+
+el("tus-kopyala").onclick = () => kopyala(sonKod, el("tus-kopyala"), "Numarayı kopyala");
+
+el("tus-gecmis").onclick = () => { gecmisiCiz(); ekranGoster("gecmis"); };
+el("tus-gecmis-kapat").onclick = () => ekranGoster("ana");
+el("tus-gecmis-kopya").onclick = () => {
+  const metin = gecmisAl()
+    .map(k => k.kod + "  " + (k.bulundu ? (k.ad + " / " + k.yer) : "LİSTEDE YOK") + "  " + k.zaman)
+    .join("\n");
+  kopyala(metin || "(liste boş)", el("tus-gecmis-kopya"), "Hepsini kopyala");
+};
+el("tus-gecmis-sil").onclick = () => {
+  if (confirm("Okuma listesi silinsin mi?")){
+    localStorage.removeItem(GECMIS_ANAHTAR);
+    gecmisiCiz();
+  }
+};
+
+function kopyala(metin, tus, eskiYazi){
+  const bitti = () => {
+    tus.textContent = "✓ Kopyalandı";
+    setTimeout(() => tus.textContent = eskiYazi, 1400);
+  };
+  if (navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(metin).then(bitti).catch(() => elleKopyala(metin, bitti));
+  } else elleKopyala(metin, bitti);
+}
+function elleKopyala(metin, bitti){
+  try{
+    const a = document.createElement("textarea");
+    a.value = metin; a.style.position="fixed"; a.style.opacity="0";
+    document.body.appendChild(a); a.select();
+    document.execCommand("copy");
+    document.body.removeChild(a);
+    bitti();
+  }catch(e){}
+}
+
+/* uygulama arka plana atılırsa kamerayı bırak (pil ve ısınma) */
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && taramaCalisiyor){
+    kameraKapat();
+    ekranGoster("ana");
+  }
+});
+
+/* çevrimdışı çalışsın diye kayıt */
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
