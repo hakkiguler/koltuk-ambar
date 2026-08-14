@@ -386,7 +386,8 @@ async function kameraAc(){
   if ("BarcodeDetector" in window){
     try{
       const destekli = await window.BarcodeDetector.getSupportedFormats();
-      const istenen = ["ean_13","ean_8","upc_a","upc_e","code_128","code_39","itf","codabar","qr_code"]
+      const istenen = ["ean_13","ean_8","upc_a","upc_e","code_128","code_39","itf","codabar",
+                       "qr_code","data_matrix"]
                         .filter(f => destekli.includes(f));
       if (istenen.length){
         akis = await navigator.mediaDevices.getUserMedia(kisitlar);
