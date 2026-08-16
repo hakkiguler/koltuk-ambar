@@ -2,7 +2,7 @@
    Ambarda telefon çekmese bile uygulama açılsın diye
    dosyaları telefonun kendi içine kaydediyoruz.          */
 
-const SURUM  = "koltukambar-v1";
+const SURUM  = "koltukambar-v2";
 const DOSYA  = [
   "./",
   "./index.html",
@@ -47,10 +47,19 @@ self.addEventListener("fetch", e => {
     return;
   }
 
+  /* Ürün listesi bilgisayardan her güncellendiğinde değişiyor.
+     Burada tarayıcının KENDİ ara belleğini de atlatmamız lazım,
+     yoksa "GitHub'a yolladım ama telefonda eski liste duruyor"
+     durumu oluyor. cache:"reload" bunu yapıyor.                */
+  const listeMi = e.request.url.includes("urunler.js");
+  const internetten = listeMi
+    ? fetch(e.request.url, {cache:"reload"}).then(y => sakla(e.request, y))
+    : fetch(e.request).then(y => sakla(e.request, y));
+
   // önce internet (2,5 saniye bekle), olmazsa hafıza
   e.respondWith(
     Promise.race([
-      fetch(e.request).then(y => sakla(e.request, y)),
+      internetten,
       new Promise((_, red) => setTimeout(() => red(new Error("yavaş")), 2500))
     ]).catch(() =>
       caches.match(e.request).then(c => c || caches.match("./index.html"))

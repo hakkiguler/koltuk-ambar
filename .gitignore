@@ -1,0 +1,7 @@
+# urunler.js'in eski hallerinin yedegi.
+# Etiket Uretici her KAYDET'te bir kopya birakiyor, en yeni 30 tanesi duruyor.
+# Sadece bu bilgisayarda kalsin, GitHub'a gitmesin.
+yedek/
+
+# yazma yarida kalirsa olusan gecici dosya
+urunler.js.yeni
