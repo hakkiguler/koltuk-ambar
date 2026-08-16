@@ -1,13 +1,18 @@
 /* ===========================================================
    ÜRÜN LİSTESİ
    -----------------------------------------------------------
-   Yeni ürün eklemek için aşağıdaki satırlardan birini kopyala,
-   altına yapıştır, içindekileri değiştir. Virgülleri silme.
+   BU DOSYAYI ELLE DÜZENLEME. Etiket Üretici yazıyor
+   (masaüstü: "Koltuk Ambar - Etiket Uretici").
+   Elle değiştirirsen bir dahaki KAYDET'te üstüne yazılır.
 
-   barkod : Barkodun üstündeki numara (tırnak içinde kalsın)
-   ad     : Ürünün adı  -> ekranda üstte görünür
-   yer    : Ambardaki yeri -> ekranda KOCAMAN görünür
-   not    : Varsa ek bilgi (istemiyorsan "" olarak bırak)
+   barkod : Etiketteki numara
+   ad     : Ürünün adı        -> telefonda üstte görünür
+   yer    : Ambardaki yeri    -> telefonda KOCAMAN görünür
+   not    : Varsa ek bilgi
+   raf/goz/adet/basildi : Üreticinin kendi kullandığı alanlar,
+                          telefondaki uygulama bunlara bakmıyor.
+
+   Son yazan: 16.08.2026 09:54:13 · 4 kayıt
    =========================================================== */
 
 const URUNLER = [
