@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Etiket Üretici — Koltuk Ambar</title>
+<style>
+  *{box-sizing:border-box}
+
+  /* ============ EKRAN GÖRÜNÜMÜ (basılmaz) ============ */
+  body{
+    margin:0;background:#12141a;color:#f2f4f8;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  header{
+    display:flex;align-items:center;gap:10px;
+    padding:14px 20px;border-bottom:1px solid #262a35;
+  }
+  header .logo{font-size:22px}
+  header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.3px}
+
+  .panel{padding:20px;max-width:900px;margin:0 auto}
+
+  .alanlar{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .alan{display:flex;flex-direction:column;gap:6px}
+  .alan label{font-size:13px;color:#8b93a7;font-weight:600}
+  .alan input,.alan select{
+    font-family:ui-monospace,Consolas,monospace;font-size:20px;font-weight:700;
+    padding:12px 14px;border-radius:12px;border:2px solid #3a4050;
+    background:#1b1f28;color:#f2f4f8;width:170px;
+  }
+  .alan select{font-family:inherit;font-size:16px}
+  .alan input:focus,.alan select:focus{outline:none;border-color:#ffd23f}
+
+  .tus{
+    border:0;border-radius:14px;font-family:inherit;font-weight:800;font-size:18px;
+    padding:16px 24px;color:#12141a;background:#ffd23f;box-shadow:0 4px 0 #c9a323;
+  }
+  .tus:active{transform:translateY(3px);box-shadow:0 1px 0 #c9a323}
+  .tus.yesil{background:#4ade80;box-shadow:0 4px 0 #2fa85c}
+  .tus.yesil:active{box-shadow:0 1px 0 #2fa85c}
+  .tus.ikincil{
+    background:transparent;color:#c7cede;border:2px solid #3a4050;
+    box-shadow:none;font-size:15px;font-weight:600;padding:14px 18px;
+  }
+  .tus.ikincil:active{transform:none;background:#1b1f28}
+  .tus:disabled{opacity:.4}
+  .tuslar{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+  .bilgi{
+    background:#1b1f28;border:1px solid #262a35;border-radius:12px;
+    padding:14px 16px;font-size:15px;line-height:1.6;margin-bottom:16px;
+  }
+  .bilgi b{color:#ffd23f}
+  .bilgi .buyuk{font-size:17px;font-weight:700;color:#f2f4f8}
+
+  .durum{margin-top:16px;font-size:15px;line-height:1.6;border-radius:12px;padding:14px 16px}
+  .durum.iyi{background:#16301f;border:1px solid #2fa85c;color:#b6f0cd}
+  .durum.kotu{background:#3a1f22;border:1px solid #7a3b40;color:#ffc9c9}
+  .durum.sari{background:#332b12;border:1px solid #8a7124;color:#ffe6a3}
+  .durum:empty{display:none}
+
+  .uyari-baski{
+    background:#1b1f28;border:1px dashed #3a4050;border-radius:12px;
+    padding:14px 16px;font-size:14px;line-height:1.7;color:#c7cede;margin-top:16px;
+  }
+  .uyari-baski b{color:#ffd23f}
+
+  #onizleme-baslik{
+    max-width:900px;margin:26px auto 0;padding:0 20px;
+    font-size:13px;color:#8b93a7;letter-spacing:.5px;font-weight:700;
+  }
+  #onizleme{padding:12px 20px 60px;display:flex;flex-direction:column;align-items:center;gap:14px;overflow-x:auto}
+  .sayfa-kutu{overflow:hidden}          /* küçültülmüş sayfanın boşluğunu yutar */
+  #onizleme-baslik .olcek-tus{
+    background:none;border:1px solid #3a4050;color:#aab2c4;
+    font-size:12px;padding:6px 10px;border-radius:8px;font-family:inherit;margin-left:10px;
+  }
+
+  /* ============ A4 SAYFA (basılan kısım) ============ */
+  .sayfa{
+    width:210mm;height:297mm;background:#fff;color:#000;
+    padding:var(--kenar);
+    display:flex;flex-direction:column;
+    transform-origin:top left;transform:scale(var(--olcek,1));
+  }
+  .izgara{
+    display:grid;
+    border-top:var(--cizgi) solid #8a8a8a;
+    border-left:var(--cizgi) solid #8a8a8a;
+  }
+  .hucre{
+    display:flex;align-items:center;justify-content:center;
+    border-right:var(--cizgi) solid #8a8a8a;
+    border-bottom:var(--cizgi) solid #8a8a8a;
+  }
+  .hucre svg{display:block}
+  .sayfa-alt{
+    margin-top:auto;padding-top:1.5mm;
+    font-family:system-ui,Arial,sans-serif;font-size:7pt;color:#555;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:4mm;
+    white-space:nowrap;
+  }
+  /* baskı ölçeğini doğrulayan cetvel — sadece ilk sayfada */
+  .cetvel{display:flex;align-items:flex-end;gap:1.5mm;white-space:nowrap}
+  .cetvel .cizgi{
+    width:50mm;height:2.2mm;border:0.2mm solid #555;border-top:none;
+    display:flex;justify-content:space-between;
+  }
+  .cetvel .cizgi i{width:0.2mm;background:#555;height:1.1mm}
+
+  @media print{
+    @page{ size:A4 portrait; margin:0 }
+    body{background:#fff}
+    header,.panel,#onizleme-baslik{display:none !important}
+    #onizleme{padding:0;display:block}
+    .sayfa-kutu{overflow:visible;height:auto !important}
+    .sayfa{transform:none !important;break-after:page;page-break-after:always}
+    .sayfa-kutu:last-child .sayfa{break-after:auto;page-break-after:auto}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">🏷</span>
+  <h1>Etiket Üretici — Koltuk Ambar</h1>
+</header>
+
+<div class="panel">
+
+  <div class="alanlar">
+    <div class="alan">
+      <label for="basla">Başlangıç numarası</label>
+      <input id="basla" type="number" min="1" max="999999" value="1">
+    </div>
+    <div class="alan">
+      <label for="adet">Kaç adet</label>
+      <input id="adet" type="number" min="1" max="5000" value="500">
+    </div>
+    <div class="alan">
+      <label for="boy">Etiket boyu</label>
+      <select id="boy">
+        <option value="11">11 mm — en sıkı</option>
+        <option value="13" selected>13 mm — önerilen</option>
+        <option value="15">15 mm</option>
+        <option value="18">18 mm — en rahat</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="bilgi" id="bilgi"></div>
+
+  <div class="tuslar">
+    <button class="tus" id="tus-uret">ÜRET</button>
+    <button class="tus yesil" id="tus-yazdir" disabled>YAZDIR</button>
+    <button class="tus ikincil" id="tus-isaretle" style="display:none"></button>
+    <button class="tus ikincil" id="tus-sifirla">Sayacı sıfırla</button>
+  </div>
+
+  <div class="durum" id="durum"></div>
+
+  <div class="uyari-baski">
+    <b>YAZDIRMA AYARLARI</b> — yanlışı etiketi bozar:<br>
+    • Ölçek <b>%100</b>, "Sayfaya sığdır" <b>KAPALI</b><br>
+    • <b>EconoMode / toner tasarrufu kapalı</b><br>
+    • <b>Siyah beyaz</b>, kağıt <b>A4</b><br>
+    • Tarayıcının kendi "Kenar boşlukları" ayarı <b>Yok / None</b> olsun<br>
+    • İlk sayfayı basıp bir etiketi telefonla okut, sonra gerisini bas
+  </div>
+
+</div>
+
+<div id="onizleme-baslik"></div>
+<div id="onizleme"></div>
+
+<script src="../parcalar/zxing.min.js"></script>
+<script>
+/* =========================================================
+   ETİKET ÜRETİCİ
+   Numara aralığı verilir -> basmaya hazır A4 sayfalar çıkar.
+
+   Kod biçimi (14/08 kararı): KA + 6 rakam, kontrol hanesi yok.
+     Makinenin okuduğu : KA000001
+     Etikette yazan    : KA-000001   (tire koda girmiyor, matrisi büyütür)
+
+   Üretilen her matris burada geri okunup doğrulanıyor —
+   okunmayan bir şeyi kağıda basmayalım.
+   ========================================================= */
+
+const el = id => document.getElementById(id);
+
+/* ---------- sayfa ölçüleri (mm) ---------- */
+const KENAR   = 10;    // A4 kenar payı — yazıcının basamadığı şeride girmemek için
+const ARALIK  = 2;     // etiketler arası boşluk; kesim çizgisi tam ortasından geçer
+const CIZGI   = 0.20;  // kesim çizgisi kalınlığı (lazerde ince ama net çıkar)
+const ALT_YER = 6;     // sayfa altındaki bilgi satırına ayrılan yükseklik
+
+/* ---------- kod biçimi ---------- */
+const kod  = s => "KA"  + String(s).padStart(6,"0");
+const yazi = s => "KA-" + String(s).padStart(6,"0");
+
+/* ---------- en son basılan numara (tarayıcıda saklanır) ----------
+   Aynı numarayı iki kere basmak ambarda iki ürünün aynı etiketi
+   taşıması demek — sayacın tek işi bunu önlemek.            */
+const SAYAC = "koltukambar_etiket_son";
+const sonBasilan = () => parseInt(localStorage.getItem(SAYAC) || "0", 10) || 0;
+function sonBasilaniYaz(n){ try{ localStorage.setItem(SAYAC, String(n)); }catch(e){} }
+
+/* =========================================================
+   ETİKETİN KENDİSİ
+   Tek bir SVG: üstte DataMatrix, altında gözle okunan rakamlar.
+   Ölçüler mm cinsinden (viewBox birimi = 1 mm).
+   ========================================================= */
+function dataMatrix(veri){
+  return new ZXing.DataMatrixWriter().encode(veri, ZXing.BarcodeFormat.DATA_MATRIX, 0, 0);
+}
+
+function etiketSvg(sira, boy){
+  const m = dataMatrix(kod(sira));
+  const n = m.getWidth();
+  const bosluk = 1;                    // DataMatrix'in istediği sessiz alan (1 modül)
+  const tam    = n + bosluk * 2;
+
+  const kenar   = boy * 0.025;         // iç kenar payı
+  const yaziYuk = boy * 0.130;         // rakamların kapladığı yükseklik
+  const kodMm   = boy - yaziYuk - kenar * 2;
+  const modul   = kodMm / tam;
+  const solPay  = (boy - kodMm) / 2;   // kodu yatayda ortala
+
+  let d = "";
+  for (let y = 0; y < n; y++)
+    for (let x = 0; x < n; x++)
+      if (m.get(x, y)) d += `M${x + bosluk} ${y + bosluk}h1v1h-1z`;
+
+  /* textLength: yazı tipi ne olursa olsun rakamları kutuya ZORLA sığdırır,
+     yoksa küçük etiketlerde taşıyor. */
+  const svg =
+    `<svg width="${boy}mm" height="${boy}mm" viewBox="0 0 ${boy} ${boy}" `
+  + `shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">`
+  + `<rect width="${boy}" height="${boy}" fill="#fff"/>`
+  + `<g transform="translate(${f(solPay)},${f(kenar)}) scale(${f(modul)})">`
+  + `<path d="${d}" fill="#000"/></g>`
+  + `<text x="${f(boy/2)}" y="${f(boy - kenar - yaziYuk*0.12)}" text-anchor="middle" `
+  + `textLength="${f(boy - kenar*2)}" lengthAdjust="spacingAndGlyphs" `
+  + `font-family="Consolas,monospace" font-size="${f(yaziYuk)}" font-weight="700" `
+  + `fill="#000" shape-rendering="auto">${yazi(sira)}</text></svg>`;
+
+  return { svg, matris:m, veri:kod(sira), modul };
+}
+const f = s => Math.round(s * 1000) / 1000;
+
+/* =========================================================
+   GERİ OKUMA DENETİMİ
+   Ürettiğimiz matrisi büyütüp tekrar okuyoruz. 500 etiket
+   yaklaşık 0,15 saniye sürüyor, hepsini denetlemeye değer.
+   ========================================================= */
+function geriOku(matris){
+  const n = matris.getWidth(), o = 8, bos = 4 * o;
+  const k = n * o + bos * 2;
+  const px = new Int32Array(k * k).fill(0xFFFFFF);
+  for (let y = 0; y < n; y++)
+    for (let x = 0; x < n; x++)
+      if (matris.get(x, y))
+        for (let dy = 0; dy < o; dy++)
+          for (let dx = 0; dx < o; dx++)
+            px[(y*o + dy + bos) * k + (x*o + dx + bos)] = 0x000000;
+  const bmp = new ZXing.BinaryBitmap(
+    new ZXing.HybridBinarizer(new ZXing.RGBLuminanceSource(px, k, k)));
+  return new ZXing.DataMatrixReader().decode(bmp).getText();
+}
+
+/* ---------- baskı ölçeği denetimi ----------
+   Yazıcı "sayfaya sığdır" yaparsa etiket küçülür ve okunmaz hâle
+   gelir. İlk sayfaya 50 mm'lik bir çizgi basıyoruz: cetvelle
+   ölçülüp 50 çıkmıyorsa o baskı çöp.                        */
+function cetvelHtml(){
+  return `<span class="cetvel"><span class="cizgi">`
+       + "<i></i><i></i><i></i><i></i><i></i><i></i>"
+       + `</span><span>↑ tam 50 mm olmalı — cetvelle ölç</span></span>`;
+}
+
+/* =========================================================
+   SAYFA DÜZENİ
+   ========================================================= */
+function duzen(boy){
+  const adim = boy + ARALIK;                       // bir gözün ölçüsü
+  const sutun = Math.floor((210 - KENAR*2) / adim);
+  const satir = Math.floor((297 - KENAR*2 - ALT_YER) / adim);
+  return { adim, sutun, satir, sayfada: sutun * satir };
+}
+
+function bilgiyiTazele(){
+  const boy  = +el("boy").value;
+  const adet = Math.max(1, +el("adet").value || 1);
+  const basla = Math.max(1, +el("basla").value || 1);
+  const d = duzen(boy);
+  const sayfa = Math.ceil(adet / d.sayfada);
+  const bos = sayfa * d.sayfada - adet;
+  const son = sonBasilan();
+
+  el("bilgi").innerHTML =
+      `<div class="buyuk">${yazi(basla)} → ${yazi(basla + adet - 1)}</div>`
+    + `${boy} mm · sayfada <b>${d.sayfada}</b> etiket (${d.sutun}×${d.satir}) · `
+    + `toplam <b>${sayfa}</b> sayfa`
+    + (bos ? ` · son sayfada ${bos} boş göz` : "")
+    + (son ? `<br>Sayaç: daha önce <b>${yazi(son)}</b> numarasına kadar basıldı.`
+           : `<br>Sayaç boş — henüz hiç etiket basılmamış.`);
+
+  /* çakışma uyarısı */
+  const durum = el("durum");
+  if (son && basla <= son && !durum.dataset.kilit){
+    durum.className = "durum sari";
+    durum.textContent = "⚠ Bu aralık daha önce basılan numaralarla çakışıyor ("
+      + yazi(basla) + " ≤ " + yazi(son) + "). Aynı etiketten iki tane olmasın — "
+      + "başlangıcı " + yazi(son + 1) + " yapmayı düşün.";
+  } else if (!durum.dataset.kilit){
+    durum.className = "durum"; durum.textContent = "";
+  }
+}
+
+/* =========================================================
+   ÜRET
+   ========================================================= */
+let uretilenSon = 0;
+
+function uret(){
+  const boy   = +el("boy").value;
+  const basla = Math.max(1, Math.min(999999, +el("basla").value || 1));
+  const adet  = Math.max(1, Math.min(5000, +el("adet").value || 1));
+  const bitis = basla + adet - 1;
+
+  const durum = el("durum");
+  delete durum.dataset.kilit;
+  el("tus-isaretle").style.display = "none";
+
+  if (bitis > 999999){
+    durum.className = "durum kotu";
+    durum.dataset.kilit = "1";
+    durum.textContent = "Numara 999999'u aşıyor. KA + 6 rakam en fazla 999.999 etiket demek.";
+    return;
+  }
+
+  const d = duzen(boy);
+  const baslangicZaman = performance.now();
+
+  /* --- etiketleri üret --- */
+  const etiketler = [];
+  for (let s = basla; s <= bitis; s++) etiketler.push(etiketSvg(s, boy));
+
+  /* --- hepsini geri okuyup denetle --- */
+  let hata = [];
+  etiketler.forEach(e => {
+    let sonuc;
+    try{ sonuc = geriOku(e.matris); }catch(x){ sonuc = "OKUNAMADI"; }
+    if (sonuc !== e.veri) hata.push(e.veri + " → " + sonuc);
+  });
+
+  /* --- sayfaları çiz --- */
+  const onizleme = el("onizleme");
+  onizleme.innerHTML = "";
+  const sayfaSayisi = Math.ceil(adet / d.sayfada);
+
+  for (let p = 0; p < sayfaSayisi; p++){
+    const dilim = etiketler.slice(p * d.sayfada, (p+1) * d.sayfada);
+    const ilk = basla + p * d.sayfada;
+    const sonN = ilk + dilim.length - 1;
+
+    const sayfa = document.createElement("div");
+    sayfa.className = "sayfa";
+    sayfa.style.setProperty("--kenar", KENAR + "mm");
+    sayfa.style.setProperty("--cizgi", CIZGI + "mm");
+    sayfa.innerHTML =
+        `<div class="izgara" style="grid-template-columns:repeat(${d.sutun},${d.adim}mm);`
+      + `grid-auto-rows:${d.adim}mm">`
+      + dilim.map(e => `<div class="hucre">${e.svg}</div>`).join("")
+      + `</div>`
+      + `<div class="sayfa-alt">`
+      + `<span>Koltuk Ambar · ${yazi(ilk)} – ${yazi(sonN)} · ${boy} mm · çizgilerden kes</span>`
+      + (p === 0 ? cetvelHtml() : "")
+      + `<span>sayfa ${p+1}/${sayfaSayisi}</span></div>`;
+
+    const kutu = document.createElement("div");
+    kutu.className = "sayfa-kutu";
+    kutu.appendChild(sayfa);
+    onizleme.appendChild(kutu);
+  }
+  olcekle();
+
+  const sure = Math.round(performance.now() - baslangicZaman);
+
+  /* --- sonuç --- */
+  if (hata.length){
+    durum.className = "durum kotu";
+    durum.dataset.kilit = "1";
+    durum.innerHTML = "<b>DUR — " + hata.length + " etiket geri okunamadı.</b><br>"
+      + hata.slice(0,5).join("<br>") + "<br>Basma, bana haber ver.";
+    el("tus-yazdir").disabled = true;
+    return;
+  }
+
+  durum.className = "durum iyi";
+  durum.dataset.kilit = "1";
+  durum.innerHTML = "✓ <b>" + adet + " etiket üretildi ve hepsi geri okunup doğrulandı</b> ("
+    + sure + " ms).<br>Modül boyu " + etiketler[0].modul.toFixed(2) + " mm · "
+    + sayfaSayisi + " sayfa hazır. Aşağıda görüyorsun.";
+
+  el("onizleme-baslik").innerHTML =
+      "ÖNİZLEME — basılacak sayfalar"
+    + `<button class="olcek-tus" id="tus-olcek"></button>`;
+  el("tus-olcek").onclick = () => { gercekBoy = !gercekBoy; olcekle(); };
+  olcekTusunuYaz();
+  el("tus-yazdir").disabled = false;
+  uretilenSon = bitis;
+}
+
+/* --- önizlemeyi ekrana sığdır (baskıda ölçek bozulmaz) ---
+   Küçültülmüş önizlemede 0,2 mm'lik kesim çizgileri piksel altına
+   düşüp soluk görünüyor. "Gerçek boy" ile %100'e çıkıp gerçekte
+   nasıl basılacağına bakılabilir.                            */
+let gercekBoy = false;
+
+function olcekTusunuYaz(){
+  const t = el("tus-olcek");
+  if (t) t.textContent = gercekBoy ? "↙ Sayfaya sığdır" : "🔍 Gerçek boy (%100)";
+}
+
+function olcekle(){
+  const enPx = 210 * 96 / 25.4;
+  const boyPx = 297 * 96 / 25.4;
+  const alan = Math.min(el("onizleme").clientWidth - 24, 900);
+  const olcek = gercekBoy ? 1 : Math.min(1, alan / enPx);
+  olcekTusunuYaz();
+  document.querySelectorAll(".sayfa").forEach(s => s.style.setProperty("--olcek", olcek));
+  document.querySelectorAll(".sayfa-kutu").forEach(k => {
+    k.style.width  = (enPx  * olcek) + "px";
+    k.style.height = (boyPx * olcek) + "px";
+  });
+}
+window.addEventListener("resize", olcekle);
+
+/* =========================================================
+   TUŞLAR
+   ========================================================= */
+el("tus-uret").onclick = uret;
+
+el("tus-yazdir").onclick = () => {
+  window.print();
+  const t = el("tus-isaretle");
+  t.textContent = "✓ " + yazi(uretilenSon) + "'e kadar basıldı olarak işaretle";
+  t.style.display = "inline-block";
+};
+
+el("tus-isaretle").onclick = () => {
+  sonBasilaniYaz(Math.max(sonBasilan(), uretilenSon));
+  el("basla").value = sonBasilan() + 1;
+  el("tus-isaretle").style.display = "none";
+  const durum = el("durum");
+  delete durum.dataset.kilit;
+  durum.className = "durum iyi";
+  durum.textContent = "Sayaç güncellendi: " + yazi(sonBasilan())
+    + "'e kadar basıldı. Sıradaki üretim " + yazi(sonBasilan()+1) + "'den başlayacak.";
+  durum.dataset.kilit = "1";
+  bilgiyiTazele();
+};
+
+el("tus-sifirla").onclick = () => {
+  if (!confirm("Basılan etiket sayacı sıfırlansın mı?\n\n"
+             + "Sayacın tek işi aynı numarayı iki kere basmanı önlemek. "
+             + "Sıfırlarsan bu koruma kalkar.")) return;
+  localStorage.removeItem(SAYAC);
+  bilgiyiTazele();
+};
+
+["basla","adet","boy"].forEach(id => {
+  el(id).addEventListener("input", () => {
+    const durum = el("durum");
+    delete durum.dataset.kilit;
+    durum.className = "durum"; durum.textContent = "";
+    el("tus-yazdir").disabled = true;
+    el("tus-isaretle").style.display = "none";
+    bilgiyiTazele();
+  });
+});
+
+/* --- açılış --- */
+el("basla").value = sonBasilan() + 1;
+bilgiyiTazele();
+</script>
+</body>
+</html>
