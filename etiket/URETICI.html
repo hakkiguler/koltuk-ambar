@@ -90,8 +90,12 @@
   tbody td{padding:9px 8px;border-bottom:1px solid #1f232c;vertical-align:middle}
   tbody tr:hover{background:#1b1f28}
   tbody tr.secili{background:#2a2410;outline:1px solid #ffd23f}
+  /* işaretleme sütunu: bir sayfaya birden fazla ayrı kod koyabilmek için */
+  th.sec,td.sec{width:36px;padding-left:6px;padding-right:2px;text-align:center}
+  th.sec input,td.sec input{
+    width:17px;height:17px;accent-color:#ffd23f;cursor:pointer;vertical-align:middle;
+  }
   td.kod{font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#ffd23f;white-space:nowrap}
-  td.adet{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   td.yer{color:#4ade80;font-weight:600;white-space:nowrap}
   td.islem{text-align:right;white-space:nowrap}
   td.islem button{
@@ -105,6 +109,37 @@
   }
   .damga.basildi{border-color:#2fa85c;color:#4ade80}
   .bos-liste{color:#8b93a7;font-size:14px;line-height:1.6;padding:10px 0}
+
+  /* ---- üretimde "kaç kopya" listesi ----
+     Adet burada soruluyor: kayıt bilgisi değil, baskı bilgisi.  */
+  .kopya-liste{
+    margin-top:14px;border:1px solid #262a35;border-radius:12px;
+    max-height:320px;overflow:auto;background:#161920;
+  }
+  .kopya-satir{
+    display:flex;align-items:center;gap:12px;padding:8px 12px;
+    border-bottom:1px solid #1f232c;font-size:14px;
+  }
+  .kopya-satir:last-child{border-bottom:none}
+  .kopya-satir .kod{
+    font-family:ui-monospace,Consolas,monospace;font-weight:700;
+    color:#ffd23f;white-space:nowrap;
+  }
+  .kopya-satir .ad{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kopya-satir .nere{color:#4ade80;font-weight:600;white-space:nowrap;font-size:13px}
+  .kopya-satir label{
+    display:flex;align-items:center;gap:7px;font-size:12px;
+    color:#8b93a7;white-space:nowrap;
+  }
+  .kopya-satir input{
+    font-family:inherit;font-size:15px;font-weight:700;width:64px;text-align:center;
+    padding:6px 4px;border-radius:8px;border:2px solid #3a4050;
+    background:#1b1f28;color:#f2f4f8;
+  }
+  .kopya-satir input:focus{outline:none;border-color:#ffd23f}
+  .kopya-toplam{font-size:14px;color:#8b93a7;padding:11px 2px 0}
+  .kopya-toplam b{color:#f2f4f8;font-size:17px}
+  .kopya-bos{font-size:14px;color:#8b93a7;padding:13px 2px 0;line-height:1.6}
 
   /* ---- durum satırları ---- */
   .durum{margin-top:14px;font-size:14px;line-height:1.6;border-radius:12px;padding:12px 15px}
@@ -207,10 +242,6 @@
         <label>Barkod no</label>
         <input id="f-kod" readonly>
       </div>
-      <div class="alan dar">
-        <label for="f-adet">Adet</label>
-        <input id="f-adet" type="number" min="1" max="500" value="1">
-      </div>
       <div class="alan genis">
         <label for="f-ad">Ne olduğu</label>
         <input id="f-ad" type="text" autocomplete="off" placeholder="Sünger 40 dns">
@@ -234,7 +265,7 @@
     </div>
     <p class="ipucu">
       Numarayı program veriyor, sıradaki boş numarayı kendi buluyor.
-      Adet = o üründen kaç koli/parça varsa o kadar etiket basılır, hepsinde aynı numara olur.
+      Kaç etiket basılacağını burada değil, aşağıda <b>4 · Etiketleri üret</b> bölümünde söyleyeceksin.
     </p>
     <div class="durum" id="durum-form"></div>
   </div>
@@ -249,8 +280,10 @@
     <table>
       <thead>
         <tr>
+          <th class="sec"><input type="checkbox" id="hepsini"
+              title="Görünen kayıtların hepsini işaretle / bırak"></th>
           <th>Barkod no</th><th>Ne olduğu</th><th>Yer</th>
-          <th style="text-align:right">Adet</th><th>Etiket</th><th></th>
+          <th>Etiket</th><th></th>
         </tr>
       </thead>
       <tbody id="liste"></tbody>
@@ -292,12 +325,16 @@
         <select id="hangi">
           <option value="basilmamis">Sadece daha önce basılmamışlar</option>
           <option value="hepsi">Listedeki her şey</option>
-          <option value="secili">Sadece seçtiğim satır</option>
+          <option value="secili" id="secenek-secili">Sadece işaretlediklerim</option>
         </select>
       </div>
       <button class="tus" id="tus-uret">ÜRET</button>
       <button class="tus yesil" id="tus-yazdir" disabled>YAZDIR</button>
     </div>
+
+    <!-- kaç kopya basılacağı burada soruluyor: baskı bilgisi, kayıt bilgisi değil -->
+    <div id="kopya-yeri"></div>
+
     <div class="durum" id="durum-uret"></div>
     <div class="uyari-baski">
       <b>YAZDIRMA AYARLARI</b> — yanlışı etiketi bozar:<br>
@@ -322,7 +359,7 @@
 
    Tek yerde iki iş:
      1) Ürünü kaydet (numara + ne olduğu + raf/göz)
-     2) O kayıtlar için etiket bas (adet kadar kopya)
+     2) O kayıtlar için etiket bas (kaç kopya olacağı basarken sorulur)
 
    Kod biçimi (14/08 kararı): KA + 6 rakam, kontrol hanesi yok.
      Makinenin okuduğu : KA000001
@@ -354,9 +391,11 @@ const yerYazisi = (raf, goz) => raf + ". RAF – " + goz + ". GÖZ";
 /* =========================================================
    KAYITLAR
    ========================================================= */
-let KAYITLAR = [];        // {barkod, ad, yer, not, raf, goz, adet, basildi}
+let KAYITLAR = [];        // {barkod, ad, yer, not, raf, goz, basildi}
 let duzenlenen = null;    // düzenleme modundaysak barkod
-let secili = null;        // tabloda seçili satırın barkodu
+/* Tabloda işaretli satırlar. Tek satır değil KÜME: bir A4'e birden fazla
+   AYRI kod koyabilmek için (3 etiket için bütün sayfayı harcamayalım). */
+const SECILILER = new Set();
 let kirli = false;        // kaydedilmemiş değişiklik var mı
 
 const YEDEK = "koltukambar_kayit_yedek";
@@ -371,7 +410,6 @@ function dosyadanAl(){
     not:    String(u.not || ""),
     raf:    u.raf != null ? +u.raf : null,
     goz:    u.goz != null ? +u.goz : null,
-    adet:   u.adet != null ? +u.adet : 1,
     basildi: u.basildi || ""
   }));
 }
@@ -387,6 +425,7 @@ function degisti(){
   kirli = true;
   yedekleBellek();
   listeyiCiz();
+  kopyaListesiniCiz();
   kodTazele();
 }
 
@@ -412,7 +451,6 @@ function formDurum(mesaj, tur){
 
 function formTemizle(){
   duzenlenen = null;
-  el("f-adet").value = 1;
   el("f-ad").value = "";
   el("f-raf").value = "";
   el("f-goz").value = "";
@@ -425,7 +463,6 @@ function formTemizle(){
 function formuDoldur(k){
   duzenlenen = k.barkod;
   el("f-kod").value = kodNo(k.barkod) ? yazi(kodNo(k.barkod)) : k.barkod;
-  el("f-adet").value = k.adet || 1;
   el("f-ad").value = k.ad;
   el("f-raf").value = k.raf != null ? k.raf : "";
   el("f-goz").value = k.goz != null ? k.goz : "";
@@ -438,13 +475,11 @@ function formuDoldur(k){
 
 function ekleVeyaGuncelle(){
   const ad   = el("f-ad").value.trim();
-  const adet = parseInt(el("f-adet").value, 10);
   const raf  = parseInt(el("f-raf").value, 10);
   const goz  = parseInt(el("f-goz").value, 10);
   const nt   = el("f-not").value.trim();
 
   if (!ad)                      return formDurum("Ne olduğunu yaz.", "kotu"),  el("f-ad").focus();
-  if (!(adet >= 1))             return formDurum("Adet en az 1 olmalı.", "kotu"), el("f-adet").focus();
   if (!(raf >= 1))              return formDurum("Raf numarasını yaz.", "kotu"), el("f-raf").focus();
   if (!(goz >= 1))              return formDurum("Göz numarasını yaz.", "kotu"), el("f-goz").focus();
 
@@ -453,7 +488,7 @@ function ekleVeyaGuncelle(){
     if (k){
       /* yeri veya adı değiştiyse etiket hâlâ geçerli — etiketin üstünde
          sadece numara var, ürün adı değil. O yüzden "basıldı" bozulmuyor. */
-      Object.assign(k, {ad, adet, raf, goz, not:nt, yer:yerYazisi(raf,goz)});
+      Object.assign(k, {ad, raf, goz, not:nt, yer:yerYazisi(raf,goz)});
       formDurum("✓ " + yazi(kodNo(k.barkod)) + " güncellendi.", "iyi");
     }
     formTemizle();
@@ -468,15 +503,13 @@ function ekleVeyaGuncelle(){
 
   KAYITLAR.push({
     barkod, ad, yer:yerYazisi(raf,goz), not:nt,
-    raf, goz, adet, basildi:""
+    raf, goz, basildi:""
   });
-  formDurum("✓ " + yazi(no) + " eklendi — " + ad + " · " + yerYazisi(raf,goz)
-            + " · " + adet + " etiket.", "iyi");
+  formDurum("✓ " + yazi(no) + " eklendi — " + ad + " · " + yerYazisi(raf,goz) + ".", "iyi");
 
   /* sıradaki ürün büyük ihtimalle aynı rafta: raf/göz'ü bırakıyoruz */
   el("f-ad").value = "";
   el("f-not").value = "";
-  el("f-adet").value = 1;
   el("f-ad").focus();
   degisti();
 }
@@ -489,7 +522,7 @@ function sil(barkod){
     return;
   KAYITLAR = KAYITLAR.filter(x => x.barkod !== barkod);
   if (duzenlenen === barkod) formTemizle();
-  if (secili === barkod) secili = null;
+  SECILILER.delete(barkod);
   degisti();
 }
 
@@ -501,48 +534,86 @@ function listeyiCiz(){
   const govde = el("liste");
   govde.innerHTML = "";
 
+  /* silinmiş/değişmiş kayıtların işareti ortada kalmasın */
+  SECILILER.forEach(b => { if (!KAYITLAR.some(k => k.barkod === b)) SECILILER.delete(b); });
+
   const gosterilecek = KAYITLAR.filter(k => !q ||
     (k.barkod + " " + k.ad + " " + k.yer + " " + (k.not||"")).toLowerCase().includes(q));
 
   gosterilecek.forEach(k => {
     const tr = document.createElement("tr");
-    if (k.barkod === secili) tr.className = "secili";
+    if (SECILILER.has(k.barkod)) tr.className = "secili";
     tr.innerHTML =
-        `<td class="kod">${kodNo(k.barkod) ? yazi(kodNo(k.barkod)) : k.barkod}</td>`
+        `<td class="sec"><input type="checkbox" data-i="${k.barkod}"`
+      + `${SECILILER.has(k.barkod) ? " checked" : ""}></td>`
+      + `<td class="kod">${kodNo(k.barkod) ? yazi(kodNo(k.barkod)) : k.barkod}</td>`
       + `<td>${kacir(k.ad)}${k.not ? ` <span style="color:#8b93a7">· ${kacir(k.not)}</span>` : ""}</td>`
       + `<td class="yer">${kacir(k.yer)}</td>`
-      + `<td class="adet">${kodNo(k.barkod) ? (k.adet || 1) : "—"}</td>`
       + `<td><span class="damga${k.basildi ? " basildi" : ""}">`
       + (!kodNo(k.barkod) ? "kendi barkodu var"
          : k.basildi ? "basıldı " + k.basildi : "basılmadı") + `</span></td>`
       + `<td class="islem">`
       + `<button data-d="${k.barkod}">Düzenle</button>`
       + `<button class="sil" data-s="${k.barkod}">Sil</button></td>`;
+    /* satırın herhangi bir yerine tıklamak da işaretler; kutunun ve
+       tuşların kendi işi var, onları rahat bırakıyoruz */
     tr.onclick = e => {
-      if (e.target.tagName === "BUTTON") return;
-      secili = (secili === k.barkod) ? null : k.barkod;
-      listeyiCiz();
+      if (e.target.tagName === "BUTTON" || e.target.tagName === "INPUT") return;
+      isaretiCevir(k.barkod);
     };
     govde.appendChild(tr);
   });
 
+  govde.querySelectorAll("[data-i]").forEach(c =>
+    c.onchange = () => isaretiCevir(c.dataset.i));
   govde.querySelectorAll("[data-d]").forEach(b =>
     b.onclick = () => { const k = KAYITLAR.find(x => x.barkod === b.dataset.d); if (k) formuDoldur(k); });
   govde.querySelectorAll("[data-s]").forEach(b =>
     b.onclick = () => sil(b.dataset.s));
 
-  const bizimkiler   = KAYITLAR.filter(k => kodNo(k.barkod) !== null);
-  const toplamEtiket = bizimkiler.reduce((t,k) => t + (k.adet||1), 0);
-  const basilmamis   = bizimkiler.filter(k => !k.basildi);
+  /* baştaki kutu: görünenlerin hepsi işaretliyse dolu, bir kısmı işaretliyse karışık */
+  const gorunenIsaretli = gosterilecek.filter(k => SECILILER.has(k.barkod)).length;
+  const hepsiKutu = el("hepsini");
+  hepsiKutu.checked       = gosterilecek.length > 0 && gorunenIsaretli === gosterilecek.length;
+  hepsiKutu.indeterminate = gorunenIsaretli > 0 && gorunenIsaretli < gosterilecek.length;
+  hepsiKutu.disabled      = gosterilecek.length === 0;
+
+  const bizimkiler = KAYITLAR.filter(k => kodNo(k.barkod) !== null);
+  const basilmamis = bizimkiler.filter(k => !k.basildi);
   el("liste-sayi").innerHTML =
-      `<b style="color:#f2f4f8">${KAYITLAR.length}</b> kayıt · `
-    + `<b style="color:#f2f4f8">${toplamEtiket}</b> etiket`
-    + (basilmamis.length ? ` · ${basilmamis.length} kayıt henüz basılmadı` : "")
+      `<b style="color:#f2f4f8">${KAYITLAR.length}</b> kayıt`
+    + (basilmamis.length
+        ? ` · <b style="color:#f2f4f8">${basilmamis.length}</b> tanesi henüz basılmadı`
+        : (bizimkiler.length ? " · hepsi basıldı" : ""))
+    + (SECILILER.size ? ` · <b style="color:#ffd23f">${SECILILER.size}</b> işaretli` : "")
     + (kirli ? ` · <b style="color:#ffd23f">kaydedilmedi</b>` : "");
+
+  el("secenek-secili").textContent =
+    "Sadece işaretlediklerim" + (SECILILER.size ? ` (${SECILILER.size})` : "");
 
   el("bos-liste").textContent = KAYITLAR.length
     ? (gosterilecek.length ? "" : "Aramaya uyan kayıt yok.")
     : "Henüz kayıt yok. Yukarıdan ilk ürünü ekle.";
+}
+
+/* Bir satırın işaretini çevir. Üretim listesi de anında güncellenir ki
+   ekranda gördüğün ile basılacak olan ayrışmasın. */
+function isaretiCevir(barkod){
+  if (SECILILER.has(barkod)) SECILILER.delete(barkod);
+  else                       SECILILER.add(barkod);
+  listeyiCiz();
+  if (el("hangi").value === "secili") kopyaListesiniCiz();
+}
+
+/* Baştaki kutu: sadece EKRANDA GÖRÜNENLERİ işaretler/bırakır.
+   Aramayla süzülmüş 5 satırı işaretleyip 300 kaydı basmayasın diye. */
+function hepsiniIsaretle(dolsun){
+  const q = el("ara").value.trim().toLowerCase();
+  KAYITLAR.filter(k => !q ||
+      (k.barkod + " " + k.ad + " " + k.yer + " " + (k.not||"")).toLowerCase().includes(q))
+    .forEach(k => dolsun ? SECILILER.add(k.barkod) : SECILILER.delete(k.barkod));
+  listeyiCiz();
+  if (el("hangi").value === "secili") kopyaListesiniCiz();
 }
 const kacir = s => String(s).replace(/[&<>"]/g, c =>
   ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
@@ -630,6 +701,83 @@ function duzen(boy){
 }
 
 /* =========================================================
+   KAÇ KOPYA
+   Adet kayıtta tutulmuyor — "ambarda kaç tane var" ile karışıyordu.
+   Burada, basmadan hemen önce soruluyor ve hiçbir yere yazılmıyor:
+   her açılışta hepsi 1'den başlar.
+   ========================================================= */
+const KOPYA = new Map();                                   // barkod -> kaç kopya
+const kopyaSayisi = b => KOPYA.has(b) ? KOPYA.get(b) : 1;
+
+/* Hangi kayıtlara etiket basılacak. Kopya listesi de ÜRET de
+   buradan soruyor ki ekranda gördüğün ile basılan ayrışmasın. */
+function secilenKayitlar(hangi){
+  /* Fabrika barkodu olan kayıtlara etiket basmıyoruz — onların
+     zaten okunan bir barkodu var, biz sadece yerini biliyoruz.  */
+  const bizimkiler = KAYITLAR.filter(k => kodNo(k.barkod) !== null);
+
+  if (hangi === "secili"){
+    if (!SECILILER.size) return {liste:[],
+      neden:"Önce 2 · Kayıtlar'da basmak istediğin satırları işaretle. Birden fazla işaretleyebilirsin."};
+    const s = bizimkiler.filter(k => SECILILER.has(k.barkod));
+    return s.length ? {liste:s} : {liste:[],
+      neden:"İşaretlediklerinin kendi barkodu var, onlara etiket basmaya gerek yok."};
+  }
+  if (hangi === "basilmamis"){
+    const s = bizimkiler.filter(k => !k.basildi);
+    return s.length ? {liste:s} : {liste:[],
+      neden:"Basılmamış kayıt yok — hepsi basılmış görünüyor. "
+          + "Yeniden basmak istersen \"Listedeki her şey\" seç."};
+  }
+  return bizimkiler.length ? {liste:bizimkiler}
+                           : {liste:[], neden:"Etiket basılacak kayıt yok."};
+}
+
+function kopyaListesiniCiz(){
+  const yer = el("kopya-yeri");
+  const {liste, neden} = secilenKayitlar(el("hangi").value);
+
+  if (!liste.length){
+    yer.innerHTML = `<p class="kopya-bos">${kacir(neden || "")}</p>`;
+    return;
+  }
+
+  yer.innerHTML =
+      `<div class="kopya-liste">`
+    + liste.map(k =>
+        `<div class="kopya-satir">`
+      + `<span class="kod">${yazi(kodNo(k.barkod))}</span>`
+      + `<span class="ad">${kacir(k.ad)}</span>`
+      + `<span class="nere">${kacir(k.yer)}</span>`
+      + `<label>kopya <input type="number" min="1" max="500" `
+      + `value="${kopyaSayisi(k.barkod)}" data-k="${k.barkod}"></label>`
+      + `</div>`).join("")
+    + `</div>`
+    + `<p class="kopya-toplam" id="kopya-toplam"></p>`;
+
+  yer.querySelectorAll("input[data-k]").forEach(i =>
+    i.addEventListener("input", () => {
+      const n = parseInt(i.value, 10);
+      /* Kutu boşken (yazmanın ortasında) 1 sayıyoruz ama kutuya
+         dokunmuyoruz — yoksa yazdığın rakam elinden alınır. */
+      KOPYA.set(i.dataset.k, (n >= 1 && n <= 500) ? n : 1);
+      kopyaToplamiYaz();
+    }));
+
+  kopyaToplamiYaz();
+}
+
+function kopyaToplamiYaz(){
+  const t = el("kopya-toplam");
+  if (!t) return;
+  const {liste} = secilenKayitlar(el("hangi").value);
+  const toplam  = liste.reduce((s,k) => s + kopyaSayisi(k.barkod), 0);
+  const sayfa   = Math.ceil(toplam / duzen(+el("boy").value).sayfada);
+  t.innerHTML = `toplam <b>${toplam}</b> etiket · ${sayfa} sayfa`
+              + (liste.length > 1 ? ` · ${liste.length} ayrı kod` : "");
+}
+
+/* =========================================================
    ÜRET
    ========================================================= */
 let basilacaklar = [];      // hangi kayıtlar basıldı işaretlenecek
@@ -641,34 +789,10 @@ function uret(){
   el("tus-yazdir").disabled = true;
   basilacaklar = [];
 
-  /* Fabrika barkodu olan kayıtlara etiket basmıyoruz — onların
-     zaten okunan bir barkodu var, biz sadece yerini biliyoruz.  */
-  const bizimkiler = KAYITLAR.filter(k => kodNo(k.barkod) !== null);
-
-  let secilenler;
-  if (hangi === "secili"){
-    if (!secili){
-      durum.className = "durum sari";
-      durum.textContent = "Önce listeden bir satıra tıkla.";
-      return;
-    }
-    secilenler = bizimkiler.filter(k => k.barkod === secili);
-    if (!secilenler.length){
-      durum.className = "durum sari";
-      durum.textContent = "Seçtiğin kaydın kendi barkodu var, ona etiket basmaya gerek yok.";
-      return;
-    }
-  } else if (hangi === "basilmamis"){
-    secilenler = bizimkiler.filter(k => !k.basildi);
-  } else {
-    secilenler = bizimkiler.slice();
-  }
-
+  const {liste: secilenler, neden} = secilenKayitlar(hangi);
   if (!secilenler.length){
     durum.className = "durum sari";
-    durum.textContent = hangi === "basilmamis"
-      ? "Basılmamış kayıt yok — hepsi basılmış görünüyor. Yeniden basmak istersen \"Listedeki her şey\" seç."
-      : "Etiket basılacak kayıt yok.";
+    durum.textContent = neden;
     el("onizleme").innerHTML = "";
     el("onizleme-baslik").innerHTML = "";
     return;
@@ -676,13 +800,13 @@ function uret(){
 
   const baslangicZaman = performance.now();
 
-  /* --- etiketleri üret: her kayıttan adet kadar, yan yana --- */
+  /* --- etiketleri üret: her kayıttan kopya sayısı kadar, yan yana --- */
   const etiketler = [];
   const cizilen = new Map();                 // aynı kodu bir kere çiz, kopyalarda tekrar kullan
   secilenler.forEach(k => {
     if (!cizilen.has(k.barkod)) cizilen.set(k.barkod, etiketSvg(k.barkod, boy));
     const e = cizilen.get(k.barkod);
-    for (let i = 0; i < (k.adet || 1); i++) etiketler.push(e);
+    for (let i = 0; i < kopyaSayisi(k.barkod); i++) etiketler.push(e);
   });
 
   /* --- her AYRI kodu geri okuyup denetle (kopyaları tekrar denetlemeye gerek yok) --- */
@@ -789,7 +913,7 @@ function dosyaMetni(){
     + `    yer:    ${JSON.stringify(k.yer)},\n`
     + `    not:    ${JSON.stringify(k.not || "")}`
     + (k.raf != null && k.goz != null
-        ? `,\n    raf: ${k.raf}, goz: ${k.goz}, adet: ${k.adet||1}`
+        ? `,\n    raf: ${k.raf}, goz: ${k.goz}`
           + `, basildi: ${JSON.stringify(k.basildi || "")}`
         : "")
     + "\n  }"
@@ -806,8 +930,8 @@ function dosyaMetni(){
    ad     : Ürünün adı        -> telefonda üstte görünür
    yer    : Ambardaki yeri    -> telefonda KOCAMAN görünür
    not    : Varsa ek bilgi
-   raf/goz/adet/basildi : Üreticinin kendi kullandığı alanlar,
-                          telefondaki uygulama bunlara bakmıyor.
+   raf/goz/basildi : Üreticinin kendi kullandığı alanlar,
+                     telefondaki uygulama bunlara bakmıyor.
 
    Son yazan: ${tarih} · ${KAYITLAR.length} kayıt
    =========================================================== */
@@ -934,7 +1058,8 @@ function kurtarmayiDenetle(){
     + `Dosyada şu an ${KAYITLAR.length} kayıt var. Hangisini kullanayım?</span>`;
   const g = document.createElement("button");
   g.className = "tus"; g.textContent = "Kaydedilmemişi kullan";
-  g.onclick = () => { KAYITLAR = y.kayitlar; kirli = true; kutu.remove(); listeyiCiz(); kodTazele(); };
+  g.onclick = () => { KAYITLAR = y.kayitlar; kirli = true; kutu.remove();
+                      listeyiCiz(); kopyaListesiniCiz(); kodTazele(); };
   const a = document.createElement("button");
   a.className = "tus ikincil"; a.textContent = "At, dosyadaki kalsın";
   a.onclick = () => { yedekTemizle(); kutu.remove(); };
@@ -949,8 +1074,12 @@ el("tus-ekle").onclick   = ekleVeyaGuncelle;
 el("tus-vazgec").onclick = () => { formTemizle(); formDurum(""); };
 el("ara").addEventListener("input", listeyiCiz);
 
-["f-ad","f-adet","f-raf","f-goz","f-not"].forEach(id =>
+["f-ad","f-raf","f-goz","f-not"].forEach(id =>
   el(id).addEventListener("keydown", e => { if (e.key === "Enter") ekleVeyaGuncelle(); }));
+
+el("hepsini").addEventListener("change", e => hepsiniIsaretle(e.target.checked));
+el("hangi").addEventListener("change", kopyaListesiniCiz);
+el("boy").addEventListener("change", kopyaToplamiYaz);   // sadece sayfa sayısı değişir
 
 el("tus-uret").onclick   = uret;
 el("tus-kaydet").onclick = kaydet;
@@ -987,6 +1116,7 @@ window.addEventListener("beforeunload", e => {
    ========================================================= */
 KAYITLAR = dosyadanAl();
 listeyiCiz();
+kopyaListesiniCiz();
 kodTazele();
 kurtarmayiDenetle();
 sunucuyuDenetle();
