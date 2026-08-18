@@ -203,9 +203,10 @@
 
   <!-- ================= ELLE GİRİŞ ================= -->
   <section class="ekran" id="ekran-elle">
-    <h2>Barkod numarası</h2>
-    <p>Barkodun altındaki rakamları yaz.</p>
-    <input id="elle-kod" type="text" inputmode="numeric" autocomplete="off" placeholder="8690000000017">
+    <h2>Numarayı yaz</h2>
+    <p>Etiketin altındaki numara. <b>KA</b> yazmasan da olur — sadece rakamları yazman yeter.</p>
+    <input id="elle-kod" type="text" autocomplete="off" autocapitalize="characters"
+           spellcheck="false" enterkeyhint="search" placeholder="KA-000001  ya da  1">
     <button class="tus" id="tus-ara">ARA</button>
     <button class="tus ikincil" id="tus-elle-vazgec">Vazgeç</button>
   </section>
@@ -255,6 +256,24 @@ function sadelestir(kod){
   return String(kod).replace(/[^0-9A-Za-z]/g, "").toUpperCase();
 }
 
+/* ---------- kodu parçala: baştaki harfler + rakamlar ----------
+   "KA000001"      -> onek "KA", sayi "1"   (baştaki sıfırlar atılır)
+   "8690000000017" -> onek "",   sayi "8690000000017"
+   Harf ve rakam karışıksa (A1B2) null döner, esnek arama denenmez. */
+function parcala(kod){
+  const m = sadelestir(kod).match(/^([A-Z]*)([0-9]*)$/);
+  if (!m) return null;
+  return { onek: m[1], sayi: m[2].replace(/^0+/, "") || "0" };
+}
+
+/* ---------- etikette gözle okunan biçim ----------
+   KA000001 -> KA-000001   (tire kodun içinde YOK, sadece insana
+   gösterirken ekleniyor — etiketin altındaki yazıyla aynı görünsün) */
+function gozeGore(kod){
+  const m = sadelestir(kod).match(/^([A-Z]+)([0-9]+)$/);
+  return m ? (m[1] + "-" + m[2]) : String(kod);
+}
+
 /* ---------- listede ara ---------- */
 function urunBul(kod){
   const s = sadelestir(kod);
@@ -266,7 +285,23 @@ function urunBul(kod){
     const b = sadelestir(u.barkod);
     return b.replace(/^0+/,"") === s.replace(/^0+/,"");
   });
-  return bulunan || null;
+  if (bulunan) return bulunan;
+
+  /* Telefonda "KA" yazmak zor (klavye), üstelik önek zaten hep aynı.
+     Bu yüzden sadece rakam yazmak da yeter: 1 / 000001 / ka1 -> KA000001.
+     Yalnızca harf önekli kodlar bu adıma girer; rakamdan ibaret mağaza
+     barkodları buraya karışmaz. Birden fazla ürüne uyuyorsa tahmin
+     etmiyoruz — yanlış rafı göstermektense bulunamadı demek daha iyi. */
+  const g = parcala(s);
+  if (g){
+    const adaylar = URUNLER.filter(u => {
+      const b = parcala(u.barkod);
+      return b && b.onek && b.sayi === g.sayi
+             && (g.onek === "" || g.onek === b.onek);
+    });
+    if (adaylar.length === 1) return adaylar[0];
+  }
+  return null;
 }
 
 /* ---------- bip sesi ---------- */
@@ -326,8 +361,12 @@ function gecmisiCiz(){
 
 /* ---------- sonucu göster ---------- */
 function sonucGoster(kod){
-  sonKod = kod;
   const u = urunBul(kod);
+  /* Kısa yazsan da (1) ekranda ürünün gerçek kodu görünsün: hem doğru
+     ürünü bulduğunu gözle kontrol edebilirsin, hem Geçmiş'ten kopyaladığın
+     numara doğrudan işe yarar. Bulunamadıysa yazdığın şey kalır. */
+  const gosterilen = u ? gozeGore(u.barkod) : kod;
+  sonKod = gosterilen;
   const ekran = el("ekran-sonuc");
 
   if (u){
@@ -347,11 +386,11 @@ function sonucGoster(kod){
     el("not").textContent = "Bu barkod listede yok. Numarayı not al.";
     el("not").style.display = "block";
   }
-  el("sonuc-kod").textContent = kod;
+  el("sonuc-kod").textContent = gosterilen;
 
   const zaman = new Date().toLocaleString("tr-TR",
     {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-  gecmiseEkle({kod:kod, bulundu:!!u, ad:u?u.ad:"", yer:u?u.yer:"", zaman:zaman});
+  gecmiseEkle({kod:gosterilen, bulundu:!!u, ad:u?u.ad:"", yer:u?u.yer:"", zaman:zaman});
 
   bip(!!u);
   titret(!!u);

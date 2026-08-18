@@ -2,7 +2,7 @@
    Ambarda telefon çekmese bile uygulama açılsın diye
    dosyaları telefonun kendi içine kaydediyoruz.          */
 
-const SURUM  = "koltukambar-v2";
+const SURUM  = "koltukambar-v3";
 const DOSYA  = [
   "./",
   "./index.html",
