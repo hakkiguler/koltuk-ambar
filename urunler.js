@@ -9,10 +9,10 @@
    ad     : Ürünün adı        -> telefonda üstte görünür
    yer    : Ambardaki yeri    -> telefonda KOCAMAN görünür
    not    : Varsa ek bilgi
-   raf/goz/adet/basildi : Üreticinin kendi kullandığı alanlar,
-                          telefondaki uygulama bunlara bakmıyor.
+   raf/goz/basildi : Üreticinin kendi kullandığı alanlar,
+                     telefondaki uygulama bunlara bakmıyor.
 
-   Son yazan: 16.08.2026 20:22:42 · 7 kayıt
+   Son yazan: 18.08.2026 23:49:37 · 8 kayıt
    =========================================================== */
 
 const URUNLER = [
@@ -50,7 +50,7 @@ const URUNLER = [
     ad:     "çay bardağı",
     yer:    "2. RAF – 2. GÖZ",
     not:    "",
-    raf: 2, goz: 2, adet: 1, basildi: ""
+    raf: 2, goz: 2, basildi: ""
   },
 
   {
@@ -58,7 +58,7 @@ const URUNLER = [
     ad:     "koltuk",
     yer:    "1. RAF – 3. GÖZ",
     not:    "",
-    raf: 1, goz: 3, adet: 1, basildi: ""
+    raf: 1, goz: 3, basildi: ""
   },
 
   {
@@ -66,7 +66,15 @@ const URUNLER = [
     ad:     "parfüm",
     yer:    "1. RAF – 1. GÖZ",
     not:    "",
-    raf: 1, goz: 1, adet: 1, basildi: ""
+    raf: 1, goz: 1, basildi: ""
+  },
+
+  {
+    barkod: "KA000004",
+    ad:     "kulaklık",
+    yer:    "1. RAF – 1. GÖZ",
+    not:    "",
+    raf: 1, goz: 1, basildi: ""
   }
 
 ];
