@@ -296,12 +296,12 @@
     <h2>3 · Kaydet ve telefona gönder</h2>
     <div class="tuslar">
       <button class="tus mavi" id="tus-kaydet">KAYDET</button>
-      <button class="tus yesil" id="tus-yolla">GITHUB'A YOLLA</button>
+      <button class="tus yesil" id="tus-yolla">SUNUCUYA YOLLA</button>
       <button class="tus ikincil" id="tus-indir">Dosyayı indir</button>
     </div>
     <p class="ipucu">
       <b>KAYDET</b> listeyi bilgisayarındaki <code>urunler.js</code> dosyasına yazar.
-      <b>GITHUB'A YOLLA</b> o dosyayı internete gönderir — ancak ondan sonra telefondaki
+      <b>SUNUCUYA YOLLA</b> o dosyayı internete gönderir — ancak ondan sonra telefondaki
       uygulama yeni listeyi görür.
     </p>
     <div class="durum" id="durum-kayit"></div>
@@ -999,7 +999,7 @@ async function kaydet(){
     listeyiCiz();
     kayitDurum("✓ <b>" + KAYITLAR.length + " kayıt yazıldı</b> → <code>" + kacir(d.yol)
       + "</code>" + (d.yedek ? "<br>Bir öncekinin yedeği alındı." : "")
-      + "<br>Telefonun görmesi için şimdi <b>GITHUB'A YOLLA</b> de.", "iyi");
+      + "<br>Telefonun görmesi için şimdi <b>SUNUCUYA YOLLA</b> de.", "iyi");
   }catch(e){
     kayitDurum("Kaydedilemedi: " + kacir(e.message)
       + "<br>Liste kaybolmadı, tarayıcıda duruyor. Tekrar dene ya da bana söyle.", "kotu");
@@ -1009,16 +1009,16 @@ async function kaydet(){
 async function yolla(){
   if (kirli && !confirm("Kaydedilmemiş değişiklikler var. Önce KAYDET demen lazım.\n\n"
                       + "Yine de eski hâlini göndereyim mi?")) return;
-  kayitDurum("GitHub'a gönderiliyor…", "sari");
+  kayitDurum("Sunucuya gönderiliyor…", "sari");
   try{
     const y = await fetch("/api/yolla", {method:"POST"});
     const d = await y.json();
     if (!d.tamam) throw new Error(d.hata || "bilinmeyen hata");
     if (d.degisiklikYok){
-      kayitDurum("Gönderilecek yeni bir şey yok — GitHub zaten güncel.", "sari", d.cikti);
+      kayitDurum("Gönderilecek yeni bir şey yok — sunucu zaten güncel.", "sari", d.cikti);
       return;
     }
-    kayitDurum("✓ <b>GitHub'a gönderildi.</b><br>Telefonda uygulamayı aç, yeni liste orada. "
+    kayitDurum("✓ <b>Sunucuya gönderildi.</b><br>Telefonda uygulamayı aç, yeni liste orada. "
       + "(İnternete bağlı olması lazım.)", "iyi", d.cikti);
   }catch(e){
     kayitDurum("Gönderilemedi: " + kacir(e.message)
