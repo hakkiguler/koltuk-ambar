@@ -12,7 +12,7 @@
    raf/goz/basildi : Üreticinin kendi kullandığı alanlar,
                      telefondaki uygulama bunlara bakmıyor.
 
-   Son yazan: 19.08.2026 22:53:06 · 9 kayıt
+   Son yazan: 20.08.2026 09:23:58 · 10 kayıt
    =========================================================== */
 
 const URUNLER = [
@@ -83,6 +83,14 @@ const URUNLER = [
     yer:    "1. RAF – 1. GÖZ",
     not:    "",
     raf: 1, goz: 1, basildi: ""
+  },
+
+  {
+    barkod: "KA000006",
+    ad:     "kask",
+    yer:    "2. RAF – 2. GÖZ",
+    not:    "",
+    raf: 2, goz: 2, basildi: ""
   }
 
 ];
