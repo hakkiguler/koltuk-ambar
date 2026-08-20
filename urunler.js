@@ -18,14 +18,14 @@
 const URUNLER = [
 
   {
-    barkod: "8684207695867",
+    barkod: "8697681460098",
     ad:     "Su Şişesi",
     yer:    "1. RAF – 1. GÖZ",
     not:    "Deneme kaydı"
   },
 
   {
-    barkod: "8697681460098",
+    barkod: "8684207695867",
     ad:     "Protein Tozu",
     yer:    "1. RAF – 1. GÖZ",
     not:    "Deneme kaydı"
