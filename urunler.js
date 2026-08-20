@@ -12,7 +12,7 @@
    raf/goz/basildi : Üreticinin kendi kullandığı alanlar,
                      telefondaki uygulama bunlara bakmıyor.
 
-   Son yazan: 20.08.2026 15:28:08 · 14 kayıt
+   Son yazan: 20.08.2026 15:28:45 · 14 kayıt
    =========================================================== */
 
 const URUNLER = [
